@@ -119,7 +119,7 @@ The calculations have been verified against official Kemenag RI data sources and
 ## License
 
 ```
-Copyright 2025 Rizki Rachmad Rayyan
+Copyright 2025 Rizki Rakasiwi.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
