@@ -143,7 +143,7 @@ If you find this library useful, consider supporting its development:
 ## Documentation
 
 - [Kemenag Calculation Method](docs/KEMENAG_METHOD.md) - Detailed mathematical documentation (Indonesian)
-- [CLAUDE.md](CLAUDE.md) - Developer guidance for AI-assisted development
+- [Medium - Understanding Islamic Prayer Time Calculations: The Mathematics Behind LibMuslim Library](https://medium.com/@rizkirakasiwi09/understanding-islamic-prayer-time-calculations-the-mathematics-behind-libmuslim-library-ee169e3e97c3)
 
 ## Contributing
 
