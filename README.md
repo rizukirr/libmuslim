@@ -1,13 +1,13 @@
 # libmuslim
 
-A lightweight C library for calculating Islamic prayer times using the Indonesian Ministry of Religious Affairs (Kemenag RI) calculation method.
+A lightweight C header-only library for calculating Islamic prayer times using the Indonesian Ministry of Religious Affairs (Kemenag RI) calculation method.
 
 ## Features
 
 - Accurate prayer time calculations based on Kemenag RI standards
 - Astronomical calculations using Jean Meeus algorithms
+- Single-header library - easy to integrate
 - Cross-platform support (Linux, macOS, Windows)
-- Android-ready shared library builds
 - CLI tool for quick calculations
 - Accuracy within ±1 minute compared to official Kemenag schedules
 
@@ -49,27 +49,16 @@ For detailed mathematical formulas and worked examples, see [`docs/KEMENAG_METHO
 
 ## Building
 
-### Desktop/CLI Build
+This is a single-header library, so you can simply include `prayertimes.h` in your project.
+
+### CLI Tool
 
 ```bash
-# Configure
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-
-# Build
-cmake --build build -j$(nproc)
+# Compile the CLI tool
+gcc -O3 -o libmuslim main.c -lm
 
 # Run example (Bekasi, November 21, 2025)
-./build/libmuslim 2025 11 21 -6.2851291 106.9814968 7.0
-```
-
-### Android Build
-
-```bash
-# Requires ANDROID_HOME environment variable
-./android.sh
-
-# Output: libs/arm64-v8a/libmuslim.so
-#         libs/x86_64/libmuslim.so
+./libmuslim 2025 11 21 -6.2851291 106.9814968 7.0
 ```
 
 ## Usage
@@ -96,13 +85,11 @@ printf("Fajr: %s\n", buffer);
 ### CLI Tool
 
 ```bash
-./build/libmuslim <year> <month> <day> <latitude> <longitude> <timezone>
+./libmuslim <year> <month> <day> <latitude> <longitude> <timezone>
 ```
 
 **Example output:**
 ```
-Prayer Times for 2025-11-21 at (-6.285129, 106.981497), UTC+7.00
-
 Fajr    = 04:05
 Sunrise = 05:22
 Dhuha   = 05:50

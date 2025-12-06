@@ -1,10 +1,12 @@
+#define PRAYERTIMES_IMPLEMENTATION
 #include "prayertimes.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    printf("Usage: %s <option>\n", argv[0]);
+    printf("Usage: %s <year> <month> <day> <latitude> <longitude> <timezone>\n",
+           argv[0]);
     printf("Options:\n");
     printf("  -v, --version\n");
     return 1;
