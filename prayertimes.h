@@ -5,8 +5,13 @@
 extern "C" {
 #endif
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <string.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #define DEG_TO_RAD (M_PI / 180.0)
 #define RAD_TO_DEG (180.0 / M_PI)
@@ -32,10 +37,9 @@ extern "C" {
 
 #define SHADOW_FACTOR_STANDARD 1.0 // for Asr (standard madhab)
 
-// Dhuha prayer time parameters (Kemenag standard)
-// Based on official Kemenag data: Dhuha starts ~28-30 minutes after sunrise
-#define DHUHA_START_OFFSET 28.0 // Start 28 minutes after sunrise (in minutes)
-#define DHUHA_END_OFFSET 5.0    // End 5 minutes before Dhuhr (in minutes)
+// Dhuha prayer time: sun altitude of 4°30' above eastern horizon
+// (irtifa' syams / setinggi tombak — standard in Indonesian falak)
+#define DHUHA_ALTITUDE 4.3
 
 // Ihtiyat (precautionary) adjustments in minutes (Kemenag standard)
 #define IHTIYAT_FAJR 2.0
@@ -107,7 +111,13 @@ static void sun_position(double jd, double *decl, double *eqt) {
       RAD_TO_DEG;
   RA = normalize_deg(RA);
 
-  *eqt = (q / 15.0) - (RA / 15.0);
+  // Normalize difference to [-180, 180] to handle wrap-around near 0/360
+  // boundary
+  double diff = fmod(q - RA + 180.0, 360.0);
+  if (diff < 0)
+    diff += 360.0;
+  diff -= 180.0;
+  *eqt = diff / 15.0;
   *decl = asin(sin(e * DEG_TO_RAD) * sin(L * DEG_TO_RAD)) * RAD_TO_DEG;
 }
 
@@ -192,9 +202,10 @@ struct PrayerTimes calculate_prayer_times(int year, int month, int day,
   double ha_asr = hour_angle(latitude, decl, -asr_angle);
   double asr = noon + ha_asr;
 
-  // Calculate Dhuha time (Kemenag standard: ~28-30 minutes after sunrise)
-  // This represents when the sun is sufficiently high (about one spear length)
-  double dhuha = sunrise + (DHUHA_START_OFFSET / 60.0);
+  // Calculate Dhuha time: sun altitude 4.5° above eastern horizon
+  // (irtifa' syams / setinggi tombak — standard in Indonesian falak)
+  double ha_dhuha = hour_angle(latitude, decl, -DHUHA_ALTITUDE);
+  double dhuha = noon - ha_dhuha;
 
   // Apply ihtiyat (precautionary) adjustments according to Kemenag standard
   fajr += IHTIYAT_FAJR / 60.0;       // +2 minutes
@@ -203,11 +214,6 @@ struct PrayerTimes calculate_prayer_times(int year, int month, int day,
   asr += IHTIYAT_ASR / 60.0;         // +2 minutes
   maghrib += IHTIYAT_MAGHRIB / 60.0; // +2 minutes
   isha += IHTIYAT_ISHA / 60.0;       // +2 minutes
-
-  // Note: Dhuha is calculated AFTER sunrise ihtiyat adjustment
-  // So it's based on the adjusted sunrise time + 28 minutes
-  // This needs to be recalculated after the ihtiyat is applied
-  dhuha = sunrise + (DHUHA_START_OFFSET / 60.0);
 
   struct PrayerTimes times = {
       .fajr = fajr,
