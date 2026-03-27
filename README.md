@@ -1,39 +1,53 @@
 # libmuslim
 
-A lightweight C header-only library for calculating Islamic prayer times using the Indonesian Ministry of Religious Affairs (Kemenag RI) calculation method.
+A lightweight C header-only library for calculating Islamic prayer times. Supports **21 international calculation methods** including MWL, ISNA, Umm al-Qura (Makkah), Egyptian General Authority, Kemenag (Indonesia), JAKIM (Malaysia), Diyanet (Turkey), and more. The default method is Kemenag.
 
 ## Features
 
-- Accurate prayer time calculations based on Kemenag RI standards
+- **21 calculation methods** — worldwide coverage from MWL to Moonsighting Committee
 - Astronomical calculations using Jean Meeus algorithms
-- Single-header library - easy to integrate
+- Single-header library — easy to integrate
 - Cross-platform support (Linux, macOS, Windows)
+- Shafi'i and Hanafi Asr support
 - CLI tool for quick calculations
-- Accuracy within ±1 minute compared to official Kemenag schedules
+
+## Supported Methods
+
+| Key | Method | Region |
+|-----|--------|--------|
+| `mwl` | Muslim World League | Europe, Far East |
+| `makkah` | Umm al-Qura, Makkah | Arabian Peninsula |
+| `isna` | ISNA | North America |
+| `egypt` | Egyptian General Authority | Africa, Middle East |
+| `karachi` | Univ. Islamic Sciences, Karachi | Pakistan, India, Bangladesh |
+| `turkey` | Diyanet, Turkey | Turkey |
+| `singapore` | MUIS, Singapore | Singapore |
+| `jakim` | JAKIM, Malaysia | Malaysia |
+| `kemenag` | KEMENAG, Indonesia | Indonesia (default) |
+| `france` | UOIF, France | France |
+| `russia` | Spiritual Admin., Russia | Russia |
+| `dubai` | GAIAE, Dubai | UAE |
+| `qatar` | Min. of Awqaf, Qatar | Qatar |
+| `kuwait` | Min. of Awqaf, Kuwait | Kuwait |
+| `jordan` | Min. of Awqaf, Jordan | Jordan |
+| `gulf` | Gulf Region | Gulf states |
+| `tunisia` | Min. of Religious Affairs | Tunisia |
+| `algeria` | Min. of Religious Affairs | Algeria |
+| `morocco` | Min. of Habous, Morocco | Morocco |
+| `portugal` | Comunidade Islamica de Lisboa | Portugal |
+| `moonsighting` | Moonsighting Committee | Worldwide |
+
+You can also use a custom method by passing `CALC_CUSTOM` with your own angles.
 
 ## How It Works
 
-### Kemenag Calculation Method
+Each method defines a set of parameters:
 
-The library implements the official Indonesian Ministry of Religious Affairs (Kemenag RI) method for calculating prayer times. This method uses specific astronomical parameters that differ from other Islamic calculation methods:
-
-**Solar Altitude Angles:**
-- **Fajr (Subuh):** -20° (sun is 20° below the eastern horizon)
-- **Sunrise (Terbit):** -0.833° (accounting for atmospheric refraction)
-- **Dhuhr (Dzuhur):** Solar noon (when the sun crosses the meridian)
-- **Asr (Ashar):** When shadow length equals object length + noon shadow (Shafi'i madhhab)
-- **Maghrib:** Same as sunset with -0.833° correction
-- **Isha (Isya):** -18° (sun is 18° below the western horizon)
-
-**Ihtiyat (Precautionary Adjustments):**
-
-To ensure prayers are never performed before their actual time, Kemenag adds safety margins:
-- All prayer times: +2 minutes
-- Sunrise: -2 minutes (exception to encourage timely Fajr prayer)
-
-**Special Calculations:**
-- **Dhuha prayer:** Begins 28 minutes after sunrise (after ihtiyat adjustment)
-- **Time formatting:** Uses ceiling rounding (always rounds up) rather than standard rounding
+- **Fajr angle** — sun depression angle for Fajr
+- **Isha angle or interval** — angle-based or fixed minutes after Maghrib
+- **Maghrib interval** — offset after sunset (0 for most methods)
+- **Asr shadow factor** — 1 (Shafi'i) or 2 (Hanafi)
+- **Ihtiyat** — precautionary margin in minutes
 
 ### Calculation Steps
 
@@ -68,18 +82,34 @@ gcc -O3 -o libmuslim main.c -lm
 ```c
 #include "prayertimes.h"
 
+// Use the default method (Kemenag)
+const MethodParams *params = method_params_get(CALC_KEMENAG);
+
 struct PrayerTimes times = calculate_prayer_times(
     2025,           // year
     11,             // month
     21,             // day
     -6.2851291,     // latitude (negative = South)
     106.9814968,    // longitude (positive = East)
-    7.0             // timezone offset (WIB = UTC+7)
+    7.0,            // timezone offset (WIB = UTC+7)
+    params          // calculation method
 );
 
 char buffer[16];
 format_time_hm(times.fajr, buffer, sizeof(buffer));
 printf("Fajr: %s\n", buffer);
+```
+
+### Using a Different Method
+
+```c
+// Use MWL method
+const MethodParams *mwl = method_params_get(CALC_MWL);
+struct PrayerTimes times = calculate_prayer_times(2025, 11, 21, 51.5074, -0.1278, 0.0, mwl);
+
+// Look up method by string key
+CalcMethod method = method_from_string("isna");
+const MethodParams *params = method_params_get(method);
 ```
 
 ### CLI Tool
@@ -101,7 +131,7 @@ Isha    = 19:07
 
 ## Verification
 
-The calculations have been verified against official Kemenag RI data sources and match within ±1 minute accuracy. See the worked examples in `docs/KEMENAG_METHOD.md` for detailed verification.
+The calculations have been verified against official data sources and match within ±1-2 minute accuracy depending on the method. See the worked examples in `docs/KEMENAG_METHOD.md` for detailed verification.
 
 ## License
 
@@ -134,4 +164,4 @@ If you find this library useful, consider supporting its development:
 
 ## Contributing
 
-Contributions are welcome! Please ensure any changes to calculation methods are verified against official Kemenag data sources.
+Contributions are welcome! Please ensure any changes to calculation methods are verified against official data sources.
