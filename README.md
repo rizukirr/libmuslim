@@ -112,6 +112,39 @@ CalcMethod method = method_from_string("isna");
 const MethodParams *params = method_params_get(method);
 ```
 
+## Timezones & DST
+
+> **NOTE:** `prayertimes.h` does **not** handle Daylight Saving Time. The
+> `timezone` argument is a fixed numeric UTC offset in hours, and the library
+> uses it exactly as given — it has no notion of dates, zones, or DST rules.
+> This is deliberate: DST is a political rule, not an astronomical one, and
+> keeping it out leaves `prayertimes.h` a pure, dependency-free (only `<math.h>`)
+> single header. **For a DST-active date you must pass the DST-adjusted offset**
+> (e.g. `1.0` for London in summer, `0.0` in winter).
+
+If you want libmuslim to compute the correct offset for you, use the optional
+companion header [`timezone.h`](timezone.h). It resolves an IANA zone name and
+date to a UTC offset with DST applied, using the host operating system's
+timezone database:
+
+```c
+#define MUSLIM_TIMEZONE_IMPLEMENTATION   // in exactly ONE translation unit
+#include "timezone.h"
+#include "prayertimes.h"
+
+char zone[64];
+get_system_timezone(zone, sizeof(zone));            // e.g. "Europe/London"
+double tz = parse_timezone_offset(zone, time(NULL)); // DST already applied
+
+const MethodParams *mwl = method_params_get(CALC_MWL);
+struct PrayerTimes times = calculate_prayer_times(2026, 7, 15, 51.5074, -0.1278, tz, mwl);
+```
+
+Unlike `prayertimes.h`, `timezone.h` touches the OS (POSIX `tzset`/`tm_gmtoff`
+or the Win32 timezone APIs), so it is **optional** — include it only if you
+want this resolution done for you. On a platform without a timezone database,
+keep supplying the offset yourself.
+
 ### CLI Tool
 
 ```bash
