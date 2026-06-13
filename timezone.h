@@ -28,6 +28,16 @@
 #ifndef MUSLIM_TIMEZONE_H
 #define MUSLIM_TIMEZONE_H
 
+/* The POSIX implementation reads `struct tm`'s tm_gmtoff field, a BSD/GNU
+ * extension that glibc only exposes when a feature-test macro is set BEFORE
+ * <time.h> is first included. Define one here so the offset is correct even
+ * under -std=c11. This requires timezone.h to be included before any system
+ * <time.h> in the translation unit. */
+#if !defined(_WIN32) && !defined(_GNU_SOURCE) && !defined(_DEFAULT_SOURCE) && \
+    !defined(_BSD_SOURCE)
+#define _DEFAULT_SOURCE 1
+#endif
+
 #include <stddef.h>
 #include <time.h>
 
@@ -236,11 +246,9 @@ int get_system_timezone(char *buf, size_t cap) {
 /* ---- POSIX implementation ---------------------------------------------- *
  * Uses the system tzdb (typically /usr/share/zoneinfo) via libc:
  *   setenv(TZ) -> tzset() -> localtime_r() -> tm_gmtoff.
- * DST and historical zone changes are honored automatically.                */
-
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
+ * DST and historical zone changes are honored automatically.
+ * (The tm_gmtoff feature-test macro is set at the top of this header, before
+ * <time.h>, so it is already in effect here.)                                */
 
 #include <stdio.h>
 #include <stdlib.h>
